@@ -1,12 +1,10 @@
 import logging
 
-from fastapi import FastAPI, WebSocket, Request, WebSocketDisconnect
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
 
-from core.config import templates, setup_logging
-from schemas.message import MessageSchema, MessageResponse
-
-
+from core.config import setup_logging, templates
+from schemas.message import MessageResponse, MessageSchema
 
 setup_logging()
 
