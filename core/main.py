@@ -10,8 +10,6 @@ setup_logging()
 
 app = FastAPI()
 
-message_counter = 0
-
 
 @app.get("/", response_class=HTMLResponse)
 async def get_index(request: Request):
@@ -24,7 +22,7 @@ async def get_index(request: Request):
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    global message_counter
+    message_counter = 0
     await websocket.accept()
     logging.info("Новое WebSocket соединение установлено")
     try:
