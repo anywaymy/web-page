@@ -1,25 +1,16 @@
-import os
 import logging
-from pathlib import Path
+
 from fastapi import FastAPI, WebSocket, Request, WebSocketDisconnect
-from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
+from core.config import templates, setup_logging
+from schemas.message import MessageSchema, MessageResponse
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("web.log", encoding="utf-8"),
-        logging.StreamHandler()
-    ]
-)
 
+
+setup_logging()
 
 app = FastAPI()
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 message_counter = 0
 
@@ -32,3 +23,25 @@ async def get_index(request: Request):
         context={}
     )
 
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    global message_counter
+    await websocket.accept()
+    logging.info("Новое WebSocket соединение установлено")
+    try:
+        while True:
+            data = await websocket.receive_json()
+            message = MessageSchema(**data)
+
+            message_counter += 1
+
+            response = MessageResponse(number=message_counter, text=message.text)
+
+            await websocket.send_json(response.model_dump())
+            logging.info(f"Отправлен ответ №{message_counter}")
+
+    except WebSocketDisconnect:
+        logging.info("Клиент отключился")
+    except Exception as e:
+        logging.error(f"Ошибка: {e}")

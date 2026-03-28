@@ -19,14 +19,35 @@
     <h2>Сообщения</h2>
     <div class="input-group">
         <input type="text" id="msgInput" placeholder="Введите текст..." autocomplete="off">
-        <button onclick="">Отправить</button>
+        <button onclick="send()">Отправить</button>
     </div>
 
     <div id="messages"></div>
 </div>
 
 <script>
+    const msgList = document.getElementById('messages');
+    const msgInput = document.getElementById('msgInput');
 
+    const socket = new WebSocket(`ws://${window.location.host}/ws`);
+
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        const item = document.createElement('div');
+        item.textContent = `${data.number}. ${data.text}`;
+        msgList.appendChild(item);
+        msgList.scrollTop = msgList.scrollHeight;
+    };
+
+    function send() {
+        if (msgInput.value.trim()) {
+            const payload = { "text": msgInput.value };
+            socket.send(JSON.stringify(payload));
+            msgInput.value = '';
+        }
+    }
+
+    msgInput.addEventListener("keypress", (e) => { if (e.key === "Enter") send(); });
 </script>
 
 </body>
